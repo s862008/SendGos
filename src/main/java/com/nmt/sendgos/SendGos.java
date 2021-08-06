@@ -56,12 +56,16 @@ public class SendGos {
 
             OrderCntr ordercontroler = new OrderCntr(properties);
             List<Order> orderscovid = ordercontroler.getOrdersCovid();
-             
+            
+            log.info("Количкство заказов готовых к отправке: "+orderscovid.size());
+            
             if (orderscovid != null) {
 
                 SendCOVID sendCovid = new SendCOVID(properties);
               //  sendCovid.postorder(orderscovid);
-                ordercontroler.updatestatus(orderscovid);
+              //  ordercontroler.updatestatus(orderscovid);
+              
+              System.out.print(orderscovid.get(0).toString());
             }
 
         }

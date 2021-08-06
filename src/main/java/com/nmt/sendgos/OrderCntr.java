@@ -38,11 +38,24 @@ public class OrderCntr {
 
                 while (rs.next()) {
                     CovidOrderBuilder order = new CovidOrderBuilder();
-                    order.setNamber(rs.getInt("examid"), rs.getInt("ID_ANAL"))
-                            .setPatient(rs.getString("first_name"), rs.getString("last_name"), rs.getString("town"));
+                    order.setDepart(Integer.parseInt((String)properties.get("DEPART_NUMBER")))
+                            .setLaboratory(rs.getString("laboratoryName"), rs.getString("laboratoryOgrn"))
+                            .setNamber(rs.getInt("examid"), rs.getInt("ID_ANAL"))
+                            .setOrderDate(rs.getString("data"))
+                            .setServ(rs.getInt("ID_ANAL"),rs.getString("analiz"),rs.getString("result"),rs.getInt("analtp"),rs.getString("dates"),rs.getString("datazanosa"))
+                            .setPatient(rs.getString("first_name"), rs.getString("last_name"), rs.getString("patronymic"), rs.getString("sex"), rs.getString("age"), rs.getString("tel_sot"))
+                            .setPatientDocs(rs.getString("snils"), rs.getString("oms"), rs.getString("doc_type"), rs.getString("doc_number"), rs.getString("doc_ser"))
+                            .setPatientAddress(sqlstr, sqlstr, sqlstr, sqlstr, sqlstr, sqlstr, sqlstr)
+                            .setRospis(rs.getString("rospis"))
+                            .setOrderDate(rs.getString("data"));
+                    if (rs.getString("short_title") != null) {
+                        order.setCompanyZakazchic(rs.getString("short_title"), rs.getString("ogrn"));
+                    } else {
+                        order.setCompanyZakazchic(rs.getString("partner_short_title"), rs.getString("partner_ogrn"));
+                    }
 
                     orders.add(order.build());
-
+                    
                 }
 
             } catch (RuntimeException e) {
@@ -55,6 +68,8 @@ public class OrderCntr {
         } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(OrderCntr.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        
 
         return orders;
 
@@ -68,15 +83,15 @@ public class OrderCntr {
             for (Order order : orderscovid) {
                 String sqlstr = "update send_gos set status = ?,message =?  where examid = ? and id_anal = ?";
                 try (java.sql.PreparedStatement updSt = conn.prepareStatement(sqlstr)) {
-                    
+
                     updSt.setString(0, order.getStatus());   //updSt.setNull(0, 0);
                     updSt.setString(1, order.getMessage());
                     updSt.setInt(2, order.getExamid());
-                    updSt.setInt(3, order.getId_anal());
+                    updSt.setInt(3, order.getServ_code());
                     updSt.executeUpdate();
                 }
             }
-            //System.out.print(orderscovid.get(0).toString());
+            
         } catch (SQLException ex) {
             Logger.getLogger(OrderCntr.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {

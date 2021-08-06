@@ -10,12 +10,12 @@ class Order {
     private String name; // short title  партнера
     private String ogrn;// 13  символов 
     private String orderData; // data examines
-    private String biomaterDate; // data zabor  probirka
+    private String serv_biomaterDate; // data zabor  probirka
     private Integer serv_code; // id anal
     private String serv_name; // analize
     private String serv_result; //result 0 - отрицательный - 1 полжительные
     private Integer serv_type; // тип анализа
-    private String readyDate; // data zanos  from results
+    private String serv_readyDate; // data zanos  from results
     private Patient patient; 
     private String status;
     private String message;
@@ -90,14 +90,6 @@ class Order {
         this.orderData = orderData;
     }
 
-    public String getBiomaterDate() {
-        return biomaterDate;
-    }
-
-    public void setBiomaterDate(String biomaterDate) {
-        this.biomaterDate = biomaterDate;
-    }
-
     public Integer getServ_code() {
         return serv_code;
     }
@@ -130,16 +122,24 @@ class Order {
         this.serv_type = serv_type;
     }
 
-    public String getReadyDate() {
-        return readyDate;
+    public String getServ_biomaterDate() {
+        return serv_biomaterDate;
     }
 
-    public void setReadyDate(String readyDate) {
-        this.readyDate = readyDate;
+    public void setServ_biomaterDate(String serv_biomaterDate) {
+        this.serv_biomaterDate = serv_biomaterDate;
+    }
+
+    public String getServ_readyDate() {
+        return serv_readyDate;
+    }
+
+    public void setServ_readyDate(String serv_readyDate) {
+        this.serv_readyDate = serv_readyDate;
     }
 
   
-
+  
     public Patient getPatient() {
         return patient;
     }
@@ -171,6 +171,13 @@ class Order {
     public void setJson(String json) {
         this.json = json;
     }
+
+    @Override
+    public String toString() {
+        return "Order{" + "number=" + number + ", examid=" + examid + ", depart=" + depart + ", laboratoryName=" + laboratoryName + ", laboratoryOgrn=" + laboratoryOgrn + ", name=" + name + ", ogrn=" + ogrn + ", orderData=" + orderData + ", serv_biomaterDate=" + serv_biomaterDate + ", serv_code=" + serv_code + ", serv_name=" + serv_name + ", serv_result=" + serv_result + ", serv_type=" + serv_type + ", serv_readyDate=" + serv_readyDate + ", patient=" + patient + '}';
+    }
+
+    
       
 
     public  class Patient {
@@ -178,7 +185,7 @@ class Order {
         protected String name; 
         protected String surname;
         protected String patronymic;
-        protected String gender; // 1 муж 2 ж
+        protected String gender; // 1 муж 2 жен
         protected String birthday; 
         protected String phone;
         protected String email;
@@ -197,6 +204,12 @@ class Order {
         public Patient() {
 
         }
+
+        @Override
+        public String toString() {
+            return "Patient{" + "name=" + name + ", surname=" + surname + ", patronymic=" + patronymic + ", gender=" + gender + ", birthday=" + birthday + ", phone=" + phone + ", email=" + email + ", snils=" + snils + ", oms=" + oms + ", doc_type=" + doc_type + ", doc_number=" + doc_number + ", doc_ser=" + doc_ser + ", region=" + region + ", town=" + town + ", district=" + district + ", streetName=" + streetName + ", house=" + house + ", appartament=" + appartament + '}';
+        }
+        
     }
 
 }
