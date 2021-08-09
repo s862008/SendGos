@@ -43,9 +43,10 @@ public class OrderCntr {
                             .setNamber(rs.getInt("examid"), rs.getInt("ID_ANAL"))
                             .setOrderDate(rs.getString("data"))
                             .setServ(rs.getInt("ID_ANAL"),rs.getString("analiz"),rs.getString("result"),rs.getInt("analtp"),rs.getString("dates"),rs.getString("datazanosa"))
+                            .setMarker(rs.getString("marker"))
                             .setPatient(rs.getString("first_name"), rs.getString("last_name"), rs.getString("patronymic"), rs.getString("sex"), rs.getString("age"), rs.getString("tel_sot"))
                             .setPatientDocs(rs.getString("snils"), rs.getString("oms"), rs.getString("doc_type"), rs.getString("doc_number"), rs.getString("doc_ser"))
-                            .setPatientAddress(sqlstr, sqlstr, sqlstr, sqlstr, sqlstr, sqlstr, sqlstr)
+                            .setPatientAddress(rs.getString("region"), rs.getString("town"), rs.getString("district"),  rs.getString("type_town"), rs.getString("street"), rs.getString("house"), rs.getString("appartament"))
                             .setRospis(rs.getString("rospis"))
                             .setOrderDate(rs.getString("data"));
                     if (rs.getString("short_title") != null) {
@@ -53,23 +54,20 @@ public class OrderCntr {
                     } else {
                         order.setCompanyZakazchic(rs.getString("partner_short_title"), rs.getString("partner_ogrn"));
                     }
-
+                    order.setCheck(rs.getString("checkclient"));
+                   
                     orders.add(order.build());
                     
                 }
 
-            } catch (RuntimeException e) {
-                throw e;
-            } catch (Exception e) {
-                System.out.println("ошибка запроса результатов " + e);
-                return null;
+            } catch (Exception e) {  
+                Logger.getLogger(OrderCntr.class.getName()).log(Level.SEVERE, "Ошибка запроса результатов ", e);    
             }
             conn.close();
         } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(OrderCntr.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(OrderCntr.class.getName()).log(Level.SEVERE, "Ошибка SQL", ex);
         }
-        
-        
+              
 
         return orders;
 
@@ -81,13 +79,13 @@ public class OrderCntr {
             conn = DBConnection.getDBConnection(properties);
 
             for (Order order : orderscovid) {
-                String sqlstr = "update send_gos set status = ?,message =?  where examid = ? and id_anal = ?";
+                String sqlstr = "update send_gos set status = ?,message =?  where examid = ? and anal_id = ?";
                 try (java.sql.PreparedStatement updSt = conn.prepareStatement(sqlstr)) {
 
-                    updSt.setString(0, order.getStatus());   //updSt.setNull(0, 0);
-                    updSt.setString(1, order.getMessage());
-                    updSt.setInt(2, order.getExamid());
-                    updSt.setInt(3, order.getServ_code());
+                    updSt.setString(1, order.getStatus());   //updSt.setNull(0, 0);
+                    updSt.setString(2, order.getMessage());
+                    updSt.setInt(3, order.getExamid());
+                    updSt.setInt(4, order.getServ_code());
                     updSt.executeUpdate();
                 }
             }

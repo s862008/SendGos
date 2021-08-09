@@ -14,6 +14,7 @@ class Order {
     private Integer serv_code; // id anal
     private String serv_name; // analize
     private String serv_result; //result 0 - отрицательный - 1 полжительные
+    private String serv_value;
     private Integer serv_type; // тип анализа
     private String serv_readyDate; // data zanos  from results
     private Patient patient; 
@@ -72,7 +73,13 @@ class Order {
         this.name = name;
     }
 
-   
+    public String getServ_value() {
+        return serv_value;
+    }
+
+    public void setServ_value(String serv_value) {
+        this.serv_value = serv_value;
+    }
 
     public String getOgrn() {
         return ogrn;
