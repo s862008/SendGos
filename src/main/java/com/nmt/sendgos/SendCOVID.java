@@ -38,6 +38,7 @@ class SendCOVID {
     }
 
     void postorder(List<Order> orders) {
+
         String token = "";
         HttpPost post = new HttpPost("https://result.crie.ru/api/v2/order/get-depart-token");
         post.addHeader("Content-Type", "application/json; charset=UTF-8");
@@ -46,25 +47,29 @@ class SendCOVID {
         String body_with_token = "{\"depart_number\":\"" + properties.getProperty("DEPART_NUMBER") + "\",\"token\":\"" + properties.getProperty("TOKEN") + "\"}";
 
         post.setEntity(new StringEntity(body_with_token, "UTF-8"));
-        try (CloseableHttpClient httpClient = HttpClients.createDefault();
-                CloseableHttpResponse response = httpClient.execute(post)) {
+
+        try (CloseableHttpClient httpClient = HttpClients.createDefault(); CloseableHttpResponse response = httpClient.execute(post)) {
 
             String jsonStr = EntityUtils.toString(response.getEntity());
-            System.out.println(jsonStr);
+            //{"name":"Bad Request","message":"ЛПУ 989999 нет в базе данных! Токен не валидный","code":0,"status":400,"type":"yii\\web\\BadRequestHttpException"}
+            //{"header":{"api":"2.0","dt":"2021-08-10T13:02:54+0300","latency":10,"route":"/api/v2/order/get-depart-token","status":"ok","errors":[]},"body":{"token":"5D779458-E9BA-8B18-1A80-E92469EA62E9"}}
+            Logger.getLogger(SendCOVID.class.getName()).log(Level.INFO, "Ответ сервера: " + jsonStr);
 
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject;
             try {
                 jsonObject = (JSONObject) jsonParser.parse(jsonStr);
-                JSONObject arr = (JSONObject) jsonObject.get("header");
-                if (arr.get("status").equals("ok")) {
+                JSONObject header = (JSONObject) jsonObject.get("header");
+
+                if (header != null && header.get("status").equals("ok")) {
                     JSONObject arr2 = (JSONObject) jsonObject.get("body");
-                    System.out.println(arr2.get("token"));
                     token = (String) arr2.get("token");
+                } else {
+                    Logger.getLogger(SendCOVID.class.getName()).log(Level.SEVERE, "Ошибка получения токена!");
                 }
 
             } catch (ParseException ex) {
-                Logger.getLogger(SendCOVID.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(SendCOVID.class.getName()).log(Level.SEVERE, "Ошибка разбора json", ex);
             }
 
         } catch (Exception ex) {
@@ -72,95 +77,99 @@ class SendCOVID {
         }
 
         if (!token.isEmpty()) {
-            try {
-                post.setURI(new URI("https://result.crie.ru/api/v2/order/ext-orders-package"));
 
-                String json_orders = "";
-                Map<String,Order> map = new HashMap<String,Order>();
-                 
-                Iterator<Order> ordersIterator = orders.iterator();
-                while (ordersIterator.hasNext()) {
-                    Order o = ordersIterator.next();
-                    if (o.getStatus() == null) {
-                        map.put(o.getNumber(), o);
-                        json_orders += ",{\\\"order\\\":"
-                                + "{\\\"number\\\":\\\"" +o.getNumber()+ "\\\",\\\"depart\\\":\\\"" + o.getDepart() + "\\\",\n"
-                                + "\\\"laboratoryName\\\":\\\"" + o.getLaboratoryName() + "\\\","
-                                + "\\\"laboratoryOgrn\\\":\\\"" + o.getLaboratoryOgrn() + "\\\",\n"
-                                + "\\\"name\\\":\\\"" + o.getName() + "\\\",\n"
-                                + "\\\"ogrn\\\":\\\"" + o.getOgrn() + "\\\",\n"
-                                + "\\\"orderDate\\\":\\\"" + o.getOrderData() + "\\\",\n"
-                                + "\\\"serv\\\":[{\\\"code\\\":\\\"" + o.getServ_code() + "\\\",\n"
-                                + "\\\"name\\\":\\\"" + o.getServ_name() + "\\\",\n"
-                                + "\\\"testSystem\\\":\\\"\\\",\n"
-                                + "\\\"biomaterDate\\\":\\\"" + o.getServ_biomaterDate() + "\\\",\n"
-                                + "\\\"readyDate\\\":\\\"" + o.getServ_readyDate() + "\\\",\n"
-                                + "\\\"result\\\":" + o.getServ_result() + ",\\\"value\\\":" + o.getServ_value() + ",\\\"type\\\":" + o.getServ_type() + "}],"
-                                + "\\\"patient\\\":{\\\"surname\\\":\\\"" + o.getPatient().surname + "\\\",\\\"name\\\":\\\"" + o.getPatient().name + "\\\",\n"
-                                + "\\\"patronymic\\\":\\\"" + o.getPatient().patronymic + "\\\",\n"
-                                + "\\\"gender\\\":" + o.getPatient().gender + ",\\\"birthday\\\":\\\"" + o.getPatient().birthday + "\\\",\n"
-                                //   + "\\\"phone\\\":\\\"9003030857\\\",\\\"email\\\":\\\"\\\",\n"
-                                + "\\\"documentType\\\":\\\"" + o.getPatient().doc_type + "\\\",\n"
-                                + "\\\"documentNumber\\\":\\\"" + o.getPatient().doc_number + "\\\",\\\"documentSerNumber\\\":\\\"" + o.getPatient().doc_ser + "\\\",\n"
-                                + "\\\"snils\\\":\\\"\\\",\\\"oms\\\":\\\"\\\",\n"
-                                + "\\\"address\\\":{\\\"regAddress\\\":{\\\"town\\\":\\\"" + o.getPatient().town + "\\\",\n"
-                                + "\\\"house\\\":\\\"" + o.getPatient().house + "\\\",\\\"state\\\":null,\\\"region\\\":\\\"" + o.getPatient().region + "\\\",\n"
-                                + "\\\"building\\\":null,\\\"district\\\":null,\n"
-                                + "\\\"appartament\\\":\\\"" + o.getPatient().appartament + "\\\",\n"
-                                + "\\\"streetName\\\":\\\"" + o.getPatient().streetName + "\\\"},\n"
-                                + "\\\"factAddress\\\":{\\\"town\\\":\\\"\\\",\\\"house\\\":\\\"\\\",\n"
-                                + "\\\"state\\\":null,\\\"region\\\":\\\"" + o.getPatient().region + "\\\",\\\"building\\\":\\\"\\\",\n"
-                                + "\\\"district\\\":null,\\\"appartament\\\":\\\"\\\",\n"
-                                + "\\\"streetName\\\":\\\"\\\"}}}}}\n\n";
-                    }
+            String json_orders = "";
+            Map<String, Order> map = new HashMap<String, Order>();
+
+            Iterator<Order> ordersIterator = orders.iterator();
+            while (ordersIterator.hasNext()) {
+                Order o = ordersIterator.next();
+                if (o.getStatus() == null) {
+                    map.put(o.getNumber(), o);
+                    json_orders += ",{\\\"order\\\":"
+                            + "{\\\"number\\\":\\\"" + o.getNumber() + "\\\",\\\"depart\\\":\\\"" + o.getDepart() + "\\\",\n"
+                            + "\\\"laboratoryName\\\":\\\"" + o.getLaboratoryName() + "\\\","
+                            + "\\\"laboratoryOgrn\\\":\\\"" + o.getLaboratoryOgrn() + "\\\",\n"
+                            + "\\\"name\\\":\\\"" + o.getName() + "\\\",\n"
+                            + "\\\"ogrn\\\":\\\"" + o.getOgrn() + "\\\",\n"
+                            + "\\\"orderDate\\\":\\\"" + o.getOrderData() + "\\\",\n"
+                            + "\\\"serv\\\":[{\\\"code\\\":\\\"" + o.getServ_code() + "\\\",\n"
+                            + "\\\"name\\\":\\\"" + o.getServ_name() + "\\\",\n"
+                            + "\\\"testSystem\\\":\\\"\\\",\n"
+                            + "\\\"biomaterDate\\\":\\\"" + o.getServ_biomaterDate() + "\\\",\n"
+                            + "\\\"readyDate\\\":\\\"" + o.getServ_readyDate() + "\\\",\n"
+                            + "\\\"result\\\":" + o.getServ_result() + ",\\\"value\\\":" + o.getServ_value() + ",\\\"type\\\":" + o.getServ_type() + "}],"
+                            + "\\\"patient\\\":{\\\"surname\\\":\\\"" + o.getPatient().surname + "\\\",\\\"name\\\":\\\"" + o.getPatient().name + "\\\",\n"
+                            + "\\\"patronymic\\\":\\\"" + o.getPatient().patronymic + "\\\",\n"
+                            + "\\\"gender\\\":" + o.getPatient().gender + ",\\\"birthday\\\":\\\"" + o.getPatient().birthday + "\\\",\n"
+                            //   + "\\\"phone\\\":\\\"9003030857\\\",\\\"email\\\":\\\"\\\",\n"
+                            + "\\\"documentType\\\":\\\"" + o.getPatient().doc_type + "\\\",\n"
+                            + "\\\"documentNumber\\\":\\\"" + o.getPatient().doc_number + "\\\",\\\"documentSerNumber\\\":\\\"" + o.getPatient().doc_ser + "\\\",\n"
+                            + "\\\"snils\\\":\\\"\\\",\\\"oms\\\":\\\"\\\",\n"
+                            + "\\\"address\\\":{\\\"regAddress\\\":{\\\"town\\\":\\\"" + o.getPatient().town + "\\\",\n"
+                            + "\\\"house\\\":\\\"" + o.getPatient().house + "\\\",\\\"state\\\":null,\\\"region\\\":\\\"" + o.getPatient().region + "\\\",\n"
+                            + "\\\"building\\\":null,\\\"district\\\":null,\n"
+                            + "\\\"appartament\\\":\\\"" + o.getPatient().appartament + "\\\",\n"
+                            + "\\\"streetName\\\":\\\"" + o.getPatient().streetName + "\\\"},\n"
+                            + "\\\"factAddress\\\":{\\\"town\\\":\\\"\\\",\\\"house\\\":\\\"\\\",\n"
+                            + "\\\"state\\\":null,\\\"region\\\":\\\"" + o.getPatient().region + "\\\",\\\"building\\\":\\\"\\\",\n"
+                            + "\\\"district\\\":null,\\\"appartament\\\":\\\"\\\",\n"
+                            + "\\\"streetName\\\":\\\"\\\"}}}}}\n\n";
                 }
-                if (json_orders.length() > 0) {
-                    String body_with_orders = String.format("{\"token\": \"%s\","
-                            + "\"depart_number\": \"%s\",\n"
-                            + "\"json\":\"[%s]\"}",
-                            token, properties.getProperty("DEPART_NUMBER"), json_orders.substring(1));
+            }
 
-                    System.out.println(body_with_orders);
+            Logger.getLogger(SendCOVID.class.getName()).log(Level.INFO, "Количество заказов подготовленых для отправки на сервер: " + map.size());
+            if (json_orders.length() > 0) {
+                String body_with_orders = String.format("{\"token\": \"%s\","
+                        + "\"depart_number\": \"%s\",\n"
+                        + "\"json\":\"[%s]\"}",
+                        token, properties.getProperty("DEPART_NUMBER"), json_orders.substring(1));
 
-                    post.setEntity(new StringEntity(body_with_orders.replaceAll("\n", ""), "UTF-8"));
-                    try (CloseableHttpClient httpClient = HttpClients.createDefault();
-                            CloseableHttpResponse response = httpClient.execute(post)) {
-                   
-                        
-                        String jsonStr = EntityUtils.toString(response.getEntity());
-                        System.out.println(jsonStr);
-                        //{"header":{"api":"2.0","dt":"2021-08-09T17:31:05+0300","latency":25,"route":"/api/v2/order/ext-orders-package","status":"ok","errors":[]},"body":[{"number":"538735-2001368","status":"error","id":null,"message":"Номер документа должен содержать более 4-х символов(documentNumber)"}]} 
-                        JSONParser jsonParser = new JSONParser();
-                        JSONObject jsonObject;
-                        try {
-                            jsonObject = (JSONObject) jsonParser.parse(jsonStr);
-                            JSONObject arr = (JSONObject) jsonObject.get("header");
-                            if (arr.get("status").equals("ok")) {
-                                JSONArray arr2 = (JSONArray) jsonObject.get("body");
-                                 Iterator i = arr2.iterator();
-                                while(i.hasNext()){
-                                   JSONObject innerObj = (JSONObject) i.next();
-                                   map.get((String)innerObj.get("number")).setStatus((String)innerObj.get("status"));  
-                                   map.get((String)innerObj.get("number")).setMessage((String)innerObj.get("message")); 
-                                    
-                                }
-                               
+                Logger.getLogger(SendCOVID.class.getName()).log(Level.INFO, "Сформировано тело запроса: " + body_with_orders);
+                try {
+                    post.setURI(new URI("https://result.crie.ru/api/v2/order/ext-orders-package"));
+                } catch (URISyntaxException ex) {
+                    Logger.getLogger(SendCOVID.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                post.setEntity(new StringEntity(body_with_orders.replaceAll("\n", ""), "UTF-8"));
+                try (CloseableHttpClient httpClient = HttpClients.createDefault(); CloseableHttpResponse response = httpClient.execute(post)) {
+
+                    String jsonStr = EntityUtils.toString(response.getEntity());
+
+                    Logger.getLogger(SendCOVID.class.getName()).log(Level.INFO, "Ответ сервера: " + jsonStr);
+                    //{"header":{"api":"2.0","dt":"2021-08-09T17:31:05+0300","latency":25,"route":"/api/v2/order/ext-orders-package","status":"ok","errors":[]},"body":[{"number":"538735-2001368","status":"error","id":null,"message":"Номер документа должен содержать более 4-х символов(documentNumber)"}]} 
+                    JSONParser jsonParser = new JSONParser();
+                    JSONObject jsonObject;
+                    try {
+                        jsonObject = (JSONObject) jsonParser.parse(jsonStr);
+                        JSONObject header = (JSONObject) jsonObject.get("header");
+                        if (header != null && header.get("status").equals("ok")) {
+                            JSONArray arr = (JSONArray) jsonObject.get("body");
+                            Iterator i = arr.iterator();
+                            while (i.hasNext()) {
+                                JSONObject innerObj = (JSONObject) i.next();
+                                map.get((String) innerObj.get("number")).setStatus((String) innerObj.get("status"));
+                                map.get((String) innerObj.get("number")).setMessage((String) innerObj.get("message"));
+                                map.get((String) innerObj.get("number")).setSendDate((String) header.get("dt"));
                             }
 
-                        } catch (ParseException ex) {
-                            Logger.getLogger(SendCOVID.class.getName()).log(Level.SEVERE, null, ex);
+                        } else {
+                            Logger.getLogger(SendCOVID.class.getName()).log(Level.SEVERE, "Ошибка получения статуса от сервера!");
                         }
 
-                    } catch (Exception ex) {
-                        Logger.getLogger(SendCOVID.class.getName()).log(Level.SEVERE, "ERROR EXECUTE POST", ex);
+                    } catch (ParseException ex) {
+                        Logger.getLogger(SendCOVID.class.getName()).log(Level.SEVERE, "Ошибка разбора json", ex);
                     }
 
+                } catch (Exception ex) {
+                    Logger.getLogger(SendCOVID.class.getName()).log(Level.SEVERE, "ERROR EXECUTE POST", ex);
+                    post.abort();
                 }
-            } catch (URISyntaxException ex) {
-                Logger.getLogger(SendCOVID.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
 
+            }
+
+        }
+        post.abort();
     }
 
 }

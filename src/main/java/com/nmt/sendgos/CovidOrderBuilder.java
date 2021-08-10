@@ -71,7 +71,6 @@ public class CovidOrderBuilder implements OrderBuilder {
             order.setServ_value("null");
         }
         if (!marker.isPresent()) {
-            System.out.println("ЕСТЬ marker равный null в заказе " + examid);
             order.setStatus("error");
             order.setMessage("marker = null; ");
         }
@@ -97,13 +96,13 @@ public class CovidOrderBuilder implements OrderBuilder {
 
         order.setPatient(patient);
 
-        if (!(rospis.orElse("")).equals("1")) {
+        if ((rospis.orElse("")).equals("1")) {
             order.setStatus("error");
             order.setMessage((Optional.ofNullable(order.getMessage()).orElse("")) + "нет росписи; ");
         }
         if (check == null) {
-           // order.setStatus("error");
-           // order.setMessage((Optional.ofNullable(order.getMessage()).orElse("")) + "недостаточно данных для отправки заказа;");
+          //  order.setStatus("error");
+          //  order.setMessage((Optional.ofNullable(order.getMessage()).orElse("")) + "недостаточно данных для отправки заказа;");
         }
 
         Logger.getLogger(CovidOrderBuilder.class.getName()).log(Level.INFO, "Собран заказ: " + order.toString());

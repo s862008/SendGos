@@ -17,6 +17,7 @@ class Order {
     private String serv_value;
     private Integer serv_type; // тип анализа
     private String serv_readyDate; // data zanos  from results
+    private String sendDate;
     private Patient patient; 
     private String status;
     private String message;
@@ -145,7 +146,13 @@ class Order {
         this.serv_readyDate = serv_readyDate;
     }
 
-  
+    public String getSendDate() {
+        return sendDate;
+    }
+
+    public void setSendDate(String sendDate) {
+        this.sendDate = sendDate;
+    }
   
     public Patient getPatient() {
         return patient;

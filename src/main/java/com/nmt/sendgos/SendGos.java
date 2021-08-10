@@ -9,9 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -48,25 +46,25 @@ public class SendGos {
     }
 
     public static void main(String args[]) {
+        log.info("------ Start ------");
 
         iniLogs();
         iniProps();
 
-        log.info("------ Start ------");
         if (!properties.isEmpty()) {
 
             OrderCntr ordercontroler = new OrderCntr(properties);
             List<Order> orderscovid = ordercontroler.getOrdersCovid();
 
-            log.info("Количкство заказов готовых к отправке: " + (orderscovid).size());
-
+            log.info("Количество заказов ожидающие обработки: " + (orderscovid).size());
+            
             if (!(orderscovid).isEmpty()) {
-
+                log.info("ПОДГОТОВКА заказов к отправке  на сервер");
                 SendCOVID sendCovid = new SendCOVID(properties);
-                  sendCovid.postorder(orderscovid);
-                  ordercontroler.updatestatus(orderscovid);
+                sendCovid.postorder(orderscovid);
+                log.info("Обновляем статус заказов в базе");
+                ordercontroler.updatestatus(orderscovid);
 
-                System.out.print((orderscovid).get(0).toString());
             }
 
         }
