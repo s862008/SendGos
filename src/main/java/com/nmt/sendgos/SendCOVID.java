@@ -51,8 +51,6 @@ class SendCOVID {
         try (CloseableHttpClient httpClient = HttpClients.createDefault(); CloseableHttpResponse response = httpClient.execute(post)) {
 
             String jsonStr = EntityUtils.toString(response.getEntity());
-            //{"name":"Bad Request","message":"ЛПУ 989999 нет в базе данных! Токен не валидный","code":0,"status":400,"type":"yii\\web\\BadRequestHttpException"}
-            //{"header":{"api":"2.0","dt":"2021-08-10T13:02:54+0300","latency":10,"route":"/api/v2/order/get-depart-token","status":"ok","errors":[]},"body":{"token":"5D779458-E9BA-8B18-1A80-E92469EA62E9"}}
             Logger.getLogger(SendCOVID.class.getName()).log(Level.INFO, "Ответ сервера: " + jsonStr);
 
             JSONParser jsonParser = new JSONParser();
@@ -137,7 +135,6 @@ class SendCOVID {
                     String jsonStr = EntityUtils.toString(response.getEntity());
 
                     Logger.getLogger(SendCOVID.class.getName()).log(Level.INFO, "Ответ сервера: " + jsonStr);
-                    //{"header":{"api":"2.0","dt":"2021-08-09T17:31:05+0300","latency":25,"route":"/api/v2/order/ext-orders-package","status":"ok","errors":[]},"body":[{"number":"538735-2001368","status":"error","id":null,"message":"Номер документа должен содержать более 4-х символов(documentNumber)"}]} 
                     JSONParser jsonParser = new JSONParser();
                     JSONObject jsonObject;
                     try {
