@@ -101,8 +101,8 @@ public class CovidOrderBuilder implements OrderBuilder {
             order.setMessage((Optional.ofNullable(order.getMessage()).orElse("")) + "нет росписи; ");
         }
         if (check == null) {
-          //  order.setStatus("error");
-          //  order.setMessage((Optional.ofNullable(order.getMessage()).orElse("")) + "недостаточно данных для отправки заказа;");
+            order.setStatus("error");
+            order.setMessage((Optional.ofNullable(order.getMessage()).orElse("")) + "недостаточно данных для отправки заказа;");
         }
 
         Logger.getLogger(CovidOrderBuilder.class.getName()).log(Level.INFO, "Собран заказ: " + order.toString());
