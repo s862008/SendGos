@@ -1,2 +1,2 @@
 /sanding_log.txt.*
-*.ini
+/config.ini

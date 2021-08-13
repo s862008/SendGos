@@ -46,18 +46,18 @@ public class SendGos {
     }
 
     public static void main(String args[]) {
-        log.info("------ Start ------");
 
         iniLogs();
         iniProps();
 
+        log.info("------ Start ------");
         if (!properties.isEmpty()) {
 
             OrderCntr ordercontroler = new OrderCntr(properties);
             List<Order> orderscovid = ordercontroler.getOrdersCovid();
 
             log.info("Количество заказов ожидающие обработки: " + (orderscovid).size());
-            
+
             if (!(orderscovid).isEmpty()) {
                 log.info("ПОДГОТОВКА заказов к отправке  на сервер");
                 SendCOVID sendCovid = new SendCOVID(properties);

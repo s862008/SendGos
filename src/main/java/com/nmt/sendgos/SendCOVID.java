@@ -40,7 +40,7 @@ class SendCOVID {
     void postorder(List<Order> orders) {
 
         String token = "";
-        HttpPost post = new HttpPost("https://result.crie.ru/api/v2/order/get-depart-token");
+        HttpPost post = new HttpPost(properties.getProperty("HOST")+"/api/v2/order/get-depart-token");
         post.addHeader("Content-Type", "application/json; charset=UTF-8");
         post.addHeader("Accept", "application/json");
 
@@ -125,7 +125,7 @@ class SendCOVID {
 
                 Logger.getLogger(SendCOVID.class.getName()).log(Level.INFO, "Сформировано тело запроса: " + body_with_orders);
                 try {
-                    post.setURI(new URI("https://result.crie.ru/api/v2/order/ext-orders-package"));
+                    post.setURI(new URI(properties.getProperty("HOST")+"/api/v2/order/ext-orders-package"));
                 } catch (URISyntaxException ex) {
                     Logger.getLogger(SendCOVID.class.getName()).log(Level.SEVERE, null, ex);
                 }

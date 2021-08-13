@@ -1,6 +1,8 @@
 package com.nmt.sendgos;
 
 import com.nmt.sendgos.Order.Patient;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,8 +32,8 @@ public class CovidOrderBuilder implements OrderBuilder {
     private Optional<String> snils;
     private Optional<String> oms;
     private Optional<String> doc_type;
-    private String doc_number;
-    private String doc_ser;
+    private Optional<String> doc_number;
+    private Optional<String> doc_ser;
     private String region;
     private Optional<String> town;
     private Optional<String> district;
@@ -60,8 +62,6 @@ public class CovidOrderBuilder implements OrderBuilder {
         order.setServ_type(analtp);
         order.setServ_code(id_anal);
         order.setServ_name(analiz);
-        order.setServ_biomaterDate(datazabora.substring(0, 10).trim());
-        order.setServ_readyDate(datazanosa.substring(0, 10).trim());
 
         if (analtp == 4) {
             order.setServ_value(result);
@@ -74,7 +74,14 @@ public class CovidOrderBuilder implements OrderBuilder {
             order.setStatus("error");
             order.setMessage("marker = null; ");
         }
-
+        if (datazabora != null && datazanosa != null) {
+            order.setServ_biomaterDate(datazabora.substring(0, 10).trim());
+            order.setServ_readyDate(datazanosa.substring(0, 10).trim());
+        } else {
+            order.setStatus("error");
+            order.setMessage((Optional.ofNullable(order.getMessage()).orElse("")) + "Нехватает даты заноса или забора; ");
+        }
+        
         Patient patient = order.new Patient();
         patient.name = this.first_name;
         patient.surname = this.last_name;
@@ -84,9 +91,11 @@ public class CovidOrderBuilder implements OrderBuilder {
         patient.phone = this.tel_sot.orElse("");
         patient.snils = this.snils.orElse("");
         patient.oms = this.oms.orElse("");
+
         patient.doc_type = this.doc_type.orElse("").equals("Паспорт") ? "Паспорт гражданина РФ" : this.doc_type.orElse("");
-        patient.doc_number = this.doc_number;
-        patient.doc_ser = this.doc_ser;
+        patient.doc_number = this.doc_number.orElse("");
+        patient.doc_ser = this.doc_ser.orElse("");
+        
         patient.region = this.region;
         patient.district = this.district.orElse("");
         patient.streetName = this.street.orElse("");
@@ -118,7 +127,7 @@ public class CovidOrderBuilder implements OrderBuilder {
     public CovidOrderBuilder setNamber(Integer examid, Integer id_anal) {
         this.examid = examid;
         this.id_anal = id_anal;
-        this.number = String.valueOf(examid) + "-" + String.valueOf(id_anal);
+        this.number = String.valueOf(examid) + "-" + String.valueOf(id_anal)+"-"+new SimpleDateFormat("yyyyMMddhhmm").format(new Date());
         return this;
     }
 
@@ -144,8 +153,8 @@ public class CovidOrderBuilder implements OrderBuilder {
         this.snils = Optional.ofNullable(snils);
         this.oms = Optional.ofNullable(oms);
         this.doc_type = Optional.ofNullable(doc_type);
-        this.doc_number = doc_number;
-        this.doc_ser = doc_ser;
+        this.doc_number = Optional.ofNullable(doc_number);
+        this.doc_ser = Optional.ofNullable(doc_ser);
         return this;
     }
 
